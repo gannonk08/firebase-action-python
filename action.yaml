@@ -1,0 +1,15 @@
+name: "GitHub Action for Python based Firebase projects"
+author: "Kristjan Gannon"
+description: "Wraps the firebase-tools CLI to enable common commands."
+
+branding:
+  icon: "package"
+  color: "gray-dark"
+
+outputs:
+  response:
+    description: "Response from the firebase command executed"
+
+runs:
+  using: "docker"
+  image: "docker://gannonk/firebase-action-python:v0.0.1"
