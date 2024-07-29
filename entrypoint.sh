@@ -44,8 +44,8 @@ fi
 if [ -n "$CREATE_VENV" ]; then
     echo "Creating and activating virtual python env in $(pwd)"
     python -m venv venv
-    pip install -r requirements.txt
     source venv/bin/activate
+    pip install -r requirements.txt
 fi
 
 sh -c "firebase $*"

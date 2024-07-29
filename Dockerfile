@@ -18,5 +18,9 @@ RUN npm i -g firebase-tools@13.14.1 && npm cache clean --force
 COPY LICENSE README.md /
 COPY "entrypoint.sh" "/entrypoint.sh"
 
+# use for debugging container
+#ENTRYPOINT ["tail"]
+#CMD ["-f","/dev/null"]
+
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["--help"]
