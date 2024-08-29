@@ -10,10 +10,6 @@ If you want a more flexible implementation, an early version of a rewrite is ava
 
 ## Outputs
 
-~~* `response` - The full response from the firebase command current run (Will most likely require a grep to get what you want, like URLS)~~
-
-_**Response has been removed for now as it caused loads of issues in the bash script**_
-
 
 ## Environment variables
 

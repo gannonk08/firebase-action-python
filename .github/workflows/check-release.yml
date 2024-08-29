@@ -11,7 +11,7 @@ jobs:
     outputs:
       # A semver comparison result - We are the base, firebase-tools is the compare-to
       comparison: ${{ steps.compare_versions.outputs.comparison-result }}
-      firebase-action-pythons-release: ${{ fromJSON(steps.get_our_release.outputs.data).tag_name }}
+      firebase-actions-python-release: ${{ fromJSON(steps.get_our_release.outputs.data).tag_name }}
       firebase-tools-release: ${{ fromJSON(steps.get_their_release.outputs.data).tag_name }}
 
     steps:
@@ -64,7 +64,7 @@ jobs:
 
       - name: Remove leading 'v' from version numbers
         run: |
-          FIREBASE_ACTIONS_RELEASE=${{ needs.check-releases.outputs.firebase-action-pythons-release }}
+          FIREBASE_ACTIONS_RELEASE=${{ needs.check-releases.outputs.firebase-actions-python-release }}
           FIREBASE_TOOLS_RELEASE=${{ needs.check-releases.outputs.firebase-tools-release }}
           echo "FIREBASE_ACTIONS_RELEASE=${FIREBASE_ACTIONS_RELEASE#v}" >> $GITHUB_ENV
           echo "FIREBASE_TOOLS_RELEASE=${FIREBASE_TOOLS_RELEASE#v}" >> $GITHUB_ENV
