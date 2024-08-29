@@ -12,4 +12,4 @@ outputs:
 
 runs:
   using: "docker"
-  image: "docker://gannonk/firebase-action-python:v0.0.1"
+  image: "docker://gannonk/firebase-action-python:v13.16.0"
