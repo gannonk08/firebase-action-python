@@ -1,19 +1,15 @@
 # GitHub Actions for Firebase
 
-This Action for [firebase-tools](https://github.com/firebase/firebase-tools) enables arbitrary actions with the `firebase` command-line client.
-
-If you want a more flexible implementation, an early version of a rewrite is available here: [setup-firebase](https://github.com/gannonk08/setup-firebase) that allows you to choose node and java version and run more than one command.
+This Action for [firebase-tools](https://github.com/firebase/firebase-tools) enables arbitrary actions with the 
+`firebase` command-line client, it is a shameless fork of [firebase-action](https://github.com/w9jds/firebase-action) 
+but with a python focus as I could not get that library to work properly to create a virtual environment.
 
 ## Inputs
-
 * `args` - **Required**. This is the arguments you want to use for the `firebase` cli
-
-## Outputs
-
 
 ## Environment variables
 
-* `GCP_SA_KEY` - **Required if FIREBASE_TOKEN is not set**. A **normal** service account key (json format) or a **base64 encoded** service account key with the needed permissions for what you are trying to deploy/update.
+* `GCP_SA_KEY` - A **normal** service account key (json format) or a **base64 encoded** service account key with the needed permissions for what you are trying to deploy/update.
   * Since the service account is using the App Engine default service account in the deploy process, it also needs the `Service Account User` role.
   * If deploying functions, you would also need the `Cloud Functions Developer` role.
     * If the deploy has scheduled functions, include the `Cloud Scheduler Admin` role.
@@ -24,19 +20,20 @@ If you want a more flexible implementation, an early version of a rewrite is ava
   * If deplying Hosting files, include the `Firebase Hosting Admin` role.
   * For more details: https://firebase.google.com/docs/hosting/github-integration
 
-* `FIREBASE_TOKEN` - **Required if GCP_SA_KEY is not set**. _**This method will soon be deprecated, use `GCP_SA_KEY` instead**_. The token to use for authentication. This token can be aquired through the `firebase login:ci` command.
-
-* `GOOGLE_APPLICATION_CREDENTIALS` - **Required if GCP_SA_KEY or FIREBASE_TOKEN is not set**. the location of a credential JSON file. For more details: https://cloud.google.com/docs/authentication/application-default-credentials#GAC
+* `GOOGLE_APPLICATION_CREDENTIALS` - **Required if GCP_SA_KEY **. the location of a credential JSON file. For more details: https://cloud.google.com/docs/authentication/application-default-credentials#GAC
 
 * `PROJECT_ID` - **Optional**. To specify a specific project to use for all commands. Not required if you specify a project in your `.firebaserc` file. If you use this, you need to give `Viewer` permission roles to your service account otherwise the action will fail with authentication errors.
 
-* `PROJECT_PATH` - **Optional**. The path to the folder containing `firebase.json` if it doesn't exist at the root of your repository. e.g. `./my-app`.
+* `PROJECT_PATH` - **Optional**. The path to where your requirements.txt should exist and where the python virtual environment will be created
+* 
+* `CREATE_VENV` - **Optional**. This determines whether to create the virtual environment based on the requirements.txt, you will need  
 
 * `CONFIG_VALUES` - **Optional**. The configuration values for Firebase function that would normally be set with `firebase functions:config:set [value]`. Example: `CONFIG_VALUES: stripe.secret_key=SECRET_KEY zapier.secret_key=SECRET_KEY`.
 
+
 ## Example
 
-To authenticate with Firebase, and deploy to Firebase Hosting:
+To authenticate with Firebase, and deploy to a Firebase Function on merges/pushes to `main` branch:
 
 ```yaml
 name: Build and Deploy
@@ -68,25 +65,15 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@master
-      - name: Download Artifact
-        uses: actions/download-artifact@master
-        with:
-          name: dist
-          path: dist
       - name: Deploy to Firebase
-        uses: gannonk08/firebase-action-python@master
+        uses: gannonk08/firebase-action-python@v0.0.1
         with:
-          args: deploy --only hosting
+          args: deploy --only functions --debug
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          CREATE_VENV: true
+          PROJECT_PATH: functions
+          GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
 ```
-Alternatively:
-
-```yaml
-        env:
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-```
-
 
 If you have multiple hosting environments you can specify which one in the args line.
 e.g. `args: deploy --only hosting:[environment name]`
@@ -100,14 +87,17 @@ If you want to add a message to a deployment (e.g. the Git commit message) you n
 
 ## Alternate versions
 
-Starting with version v2.1.2 each version release will point to a versioned docker image allowing for hardening our pipeline (so things don't break when I do something dump). On top of this, you can also point to a `master` version if you would like to test out what might not be deployed into a release yet by using something like this:
+The versioning of this project increments with `firebase-tools` starting at version `13.16.0`. The container is versioned
+alongside in order to allow different version of `firebase-tools` to be used. You can also pull down the container locally
+to modify and inspect it as needed. e.g.
 
 ```yaml
   name: Deploy to Firebase
   uses: docker://gannonk/firebase-action-python:master
   with:
-    args: deploy --only hosting
+    args: deploy --only functions --debug
   env:
+    CREATE_VENV: true
     FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
 ```
@@ -119,4 +109,10 @@ The Dockerfile and associated scripts and documentation in this project are rele
 
 ### Recommendation
 
-If you decide to do seperate jobs for build and deployment (which is probably advisable), then make sure to clone your repo as the Firebase-cli requires the firebase repo to deploy (specifically the `firebase.json`)
+If you decide to do separate jobs for build and deployment (which is probably advisable), then make sure to clone your
+repo as the Firebase-cli requires the firebase repo to deploy (specifically the `firebase.json`)
+
+### Limitations
+
+I have only personally used this to deploy a firebase function. If there are issues deploying other python firebase
+components feel free to submit an issue or create a pull request. 
